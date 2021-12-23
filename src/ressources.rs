@@ -44,5 +44,7 @@ impl Tournament {
 }
 
 pub struct State {
-    pub tournament: Tournament,
+    pub tournament: Option<Tournament>,
 }
+
+pub struct ApiResponse {}
