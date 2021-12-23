@@ -7,10 +7,11 @@ use axum::{
     routing::{delete, get, post},
     Json, Router,
 };
+use tower_http::trace;
 
 use crate::{
     ressources::{Player, State, Tournament},
-    utils::{self, route},
+    utils,
 };
 
 pub fn root() -> Router {
@@ -18,7 +19,7 @@ pub fn root() -> Router {
         "test ok"
     }
 
-    route("/", get(handler))
+    utils::route("/", get(handler))
 }
 
 pub fn register_player() -> Router {
@@ -49,17 +50,21 @@ fn print_tournament() -> Router {
         Json(state.tournament.clone())
     }
 
-    utils::route("/tournament", get(handler))
+    utils::route("/", get(handler))
 }
 
 fn start_tournament() -> Router {
     async fn handler(Extension(state): Extension<Arc<Mutex<State>>>) {
         let mut state = state.lock().unwrap();
 
-        state.tournament = Some(Tournament::new());
+        let mut tournament = Tournament::new();
+
+        tournament.fill(utils::generate_players(64));
+
+        state.tournament = Some(tournament);
     }
 
-    utils::route("/tournament", post(handler))
+    utils::route("/", post(handler))
 }
 fn stop_tournament() -> Router {
     async fn handler(Extension(state): Extension<Arc<Mutex<State>>>) {
@@ -68,7 +73,7 @@ fn stop_tournament() -> Router {
         state.tournament = None;
     }
 
-    utils::route("/tournament", delete(handler))
+    utils::route("/", delete(handler))
 }
 
 pub fn tournament() -> Router {
@@ -76,6 +81,7 @@ pub fn tournament() -> Router {
         .merge(print_tournament())
         .merge(start_tournament())
         .merge(stop_tournament());
+    tracing::debug!("test");
 
-    Router::new().nest("/", svc)
+    Router::new().nest("/tournament", svc)
 }

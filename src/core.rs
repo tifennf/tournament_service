@@ -7,7 +7,7 @@ use axum::{AddExtensionLayer, Router};
 use tower_http::trace::TraceLayer;
 
 use crate::{
-    ressources::{State, Tournament},
+    ressources::State,
     routes::{register_player, root, tournament},
 };
 
