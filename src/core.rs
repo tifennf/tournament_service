@@ -8,18 +8,16 @@ use tower_http::trace::TraceLayer;
 
 use crate::{
     ressources::{State, Tournament},
-    routes::{print_tournament, register_player, root},
+    routes::{register_player, root, tournament},
 };
 
 pub async fn run(addr: &SocketAddr) {
-    let state = Arc::new(Mutex::new(State {
-        tournament: Tournament::new(),
-    }));
+    let state = Arc::new(Mutex::new(State { tournament: None }));
 
     let app = Router::new()
         .merge(root())
         .merge(register_player())
-        .merge(print_tournament())
+        .merge(tournament())
         .layer(TraceLayer::new_for_http())
         .layer(AddExtensionLayer::new(state));
 
