@@ -45,6 +45,7 @@ impl Tournament {
 
 pub struct State {
     pub tournament: Option<Tournament>,
+    pub player_list: Vec<Player>,
 }
 
 pub struct ApiResponse {}

@@ -12,7 +12,10 @@ use crate::{
 };
 
 pub async fn run(addr: &SocketAddr) {
-    let state = Arc::new(Mutex::new(State { tournament: None }));
+    let state = Arc::new(Mutex::new(State {
+        tournament: None,
+        player_list: Vec::new(),
+    }));
 
     let app = Router::new()
         .merge(root())
