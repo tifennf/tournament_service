@@ -7,7 +7,6 @@ use axum::{
     routing::{delete, get, post},
     Json, Router,
 };
-use tower_http::trace;
 
 use crate::{
     ressources::{Player, State, Tournament},
@@ -77,11 +76,10 @@ fn stop_tournament() -> Router {
 }
 
 pub fn tournament() -> Router {
-    let svc = Router::new()
+    let tournament_routes = Router::new()
         .merge(print_tournament())
         .merge(start_tournament())
         .merge(stop_tournament());
-    tracing::debug!("test");
 
-    Router::new().nest("/tournament", svc)
+    Router::new().nest("/tournament", tournament_routes)
 }

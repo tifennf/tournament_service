@@ -1,5 +1,3 @@
-use core::slice;
-
 use serde::{Deserialize, Serialize};
 
 use crate::utils;
