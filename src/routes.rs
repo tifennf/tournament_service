@@ -2,6 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use axum::{
     extract::Extension,
+    http::StatusCode,
     response::IntoResponse,
     routing::{delete, get, post},
     Json, Router,
@@ -21,8 +22,22 @@ pub fn root() -> Router {
 }
 
 pub fn register_player() -> Router {
-    async fn handler(Json(payload): Json<Player>) -> impl IntoResponse {
-        format!("{:#?}", payload)
+    async fn handler(
+        Extension(state): Extension<Arc<Mutex<State>>>,
+        Json(player): Json<Player>,
+    ) -> impl IntoResponse {
+        let player_list = &mut state.lock().unwrap().player_list;
+
+        if player_list.len() < 4 {
+            player_list.push(player);
+            println!("{:#?}", player_list);
+
+            StatusCode::OK
+        } else {
+            println!("{:#?}", player_list);
+
+            StatusCode::FORBIDDEN
+        }
     }
     utils::route("/player", get(handler))
 }
