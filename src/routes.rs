@@ -39,7 +39,7 @@ pub fn register_player() -> Router {
             StatusCode::FORBIDDEN
         }
     }
-    utils::route("/player", get(handler))
+    utils::route("/player", post(handler))
 }
 
 fn print_tournament() -> Router {
