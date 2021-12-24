@@ -3,7 +3,7 @@ use rand::{prelude::SliceRandom, thread_rng};
 
 use crate::ressources::{Player, Pool};
 
-pub fn make_pools(number: u8, max_size: usize) -> Vec<Pool> {
+pub fn make_pools(number: usize, max_size: usize) -> Vec<Pool> {
     (0..number)
         .into_iter()
         .map(|n| Pool::new(n, max_size))

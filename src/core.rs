@@ -15,6 +15,7 @@ pub async fn run(addr: &SocketAddr) {
     let state = Arc::new(Mutex::new(State {
         tournament: None,
         player_list: Vec::new(),
+        ready: false,
     }));
 
     let app = Router::new()

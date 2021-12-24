@@ -1,9 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::utils;
-
-const POOL_AMOUNT: u8 = 8;
-const POOL_MAX_SIZE: usize = 8;
+use crate::{utils, POOL_AMOUNT, POOL_MAX_SIZE};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Player {
@@ -13,12 +10,12 @@ pub struct Player {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pool {
     player_list: Vec<Player>,
-    id: u8,
+    id: usize,
     max_size: usize,
 }
 
 impl Pool {
-    pub fn new(id: u8, max_size: usize) -> Pool {
+    pub fn new(id: usize, max_size: usize) -> Pool {
         Pool {
             player_list: Vec::new(),
             id,
@@ -66,6 +63,7 @@ impl Tournament {
 pub struct State {
     pub tournament: Option<Tournament>,
     pub player_list: Vec<Player>,
+    pub ready: bool,
 }
 
 pub struct ApiResponse {}

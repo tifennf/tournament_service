@@ -10,7 +10,7 @@ use axum::{
 
 use crate::{
     ressources::{Player, State, Tournament},
-    utils,
+    utils, PLAYER_AMOUNT, POOL_AMOUNT, POOL_MAX_SIZE,
 };
 
 pub fn root() -> Router {
@@ -26,11 +26,12 @@ pub fn register_player() -> Router {
         Extension(state): Extension<Arc<Mutex<State>>>,
         Json(player): Json<Player>,
     ) -> impl IntoResponse {
-        let player_list = &mut state.lock().unwrap().player_list;
+        let mut state = state.lock().unwrap();
 
-        if player_list.len() < 4 {
+        let player_list = &mut state.player_list;
+
+        if player_list.len() < PLAYER_AMOUNT {
             player_list.push(player);
-            println!("{:#?}", player_list);
 
             StatusCode::OK
         } else {
@@ -53,14 +54,20 @@ fn print_tournament() -> Router {
 }
 
 fn start_tournament() -> Router {
-    async fn handler(Extension(state): Extension<Arc<Mutex<State>>>) {
+    async fn handler(Extension(state): Extension<Arc<Mutex<State>>>) -> impl IntoResponse {
         let mut state = state.lock().unwrap();
 
-        let mut tournament = Tournament::new();
+        if !state.ready {
+            StatusCode::FORBIDDEN
+        } else {
+            let mut tournament = Tournament::new();
 
-        tournament.fill(utils::generate_players(64));
+            tournament.fill(state.player_list.clone());
 
-        state.tournament = Some(tournament);
+            state.tournament = Some(tournament);
+
+            StatusCode::OK
+        }
     }
 
     utils::route("/", post(handler))
