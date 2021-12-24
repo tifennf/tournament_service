@@ -35,8 +35,6 @@ pub fn register_player() -> Router {
 
             StatusCode::OK
         } else {
-            println!("{:#?}", player_list);
-
             StatusCode::FORBIDDEN
         }
     }
