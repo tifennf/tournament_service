@@ -4,7 +4,7 @@ use axum::{
     extract::Extension,
     http::StatusCode,
     response::IntoResponse,
-    routing::{delete, get, post},
+    routing::{delete, get, post, put},
     Json, Router,
 };
 
@@ -55,7 +55,16 @@ fn start_tournament() -> Router {
     async fn handler(Extension(state): Extension<Arc<Mutex<State>>>) -> impl IntoResponse {
         let mut state = state.lock().unwrap();
 
-        if !state.ready {
+        state.open = true;
+    }
+
+    utils::route("/", put(handler))
+}
+fn draw_pools() -> Router {
+    async fn handler(Extension(state): Extension<Arc<Mutex<State>>>) -> impl IntoResponse {
+        let mut state = state.lock().unwrap();
+
+        if !state.open {
             StatusCode::FORBIDDEN
         } else {
             let mut tournament = Tournament::new();
@@ -68,7 +77,7 @@ fn start_tournament() -> Router {
         }
     }
 
-    utils::route("/", post(handler))
+    utils::route("/", put(handler))
 }
 fn stop_tournament() -> Router {
     async fn handler(Extension(state): Extension<Arc<Mutex<State>>>) {
