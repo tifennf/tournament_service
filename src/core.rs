@@ -9,7 +9,7 @@ use tower_http::trace::TraceLayer;
 use crate::{
     middlewares::{OpenCheckLayer, RequestGuard},
     ressources::State,
-    routes::{register_player, root, tournament},
+    routes::{manage_tournament, register_player, root},
 };
 
 pub async fn run(addr: &SocketAddr) {
@@ -20,10 +20,8 @@ pub async fn run(addr: &SocketAddr) {
     }));
 
     let app = Router::new()
+        .merge(manage_tournament())
         .merge(root())
-        .merge(register_player())
-        .merge(tournament())
-        .layer(OpenCheckLayer)
         .layer(TraceLayer::new_for_http())
         .layer(AddExtensionLayer::new(state));
 
