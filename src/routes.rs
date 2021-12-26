@@ -1,6 +1,5 @@
 use axum::{
     extract::Extension,
-    handler::Handler,
     http::StatusCode,
     response::IntoResponse,
     routing::{delete, get, post, put},
@@ -9,9 +8,9 @@ use axum::{
 use tracing::debug;
 
 use crate::{
-    middlewares::{OpenCheckLayer, PlayerCheckLayer},
-    ressources::{Player, State, Tournament},
-    utils, SharedState,
+    middlewares::OpenCheckLayer,
+    ressources::{Player, PlayerList, State, Tournament},
+    utils, SharedState, POOL_SIZE,
 };
 
 pub fn root() -> Router {
@@ -40,12 +39,12 @@ pub fn register_player() -> Router {
 
         let player_list = &mut state.player_list;
 
-        player_list.insert(player);
+        if let Some(player_list) = player_list {
+            player_list.insert(player);
+        }
 
         StatusCode::OK
     }
-
-    let handler = handler.layer(PlayerCheckLayer);
 
     utils::route("/player", post(handler))
 }
@@ -54,9 +53,10 @@ fn draw_pools() -> Router {
     async fn handler(Extension(state): Extension<SharedState>) -> impl IntoResponse {
         let mut state = state.lock().unwrap();
 
-        let mut tournament = Tournament::new();
+        let player_list = state.player_list.as_ref().unwrap();
+        let mut tournament = Tournament::new(player_list.max_amount.0 / POOL_SIZE);
 
-        tournament.fill(state.player_list.clone());
+        tournament.fill(player_list.list());
 
         state.tournament = Some(tournament.clone());
 
@@ -70,9 +70,8 @@ pub fn start_tournament() -> Router {
     async fn handler(Extension(state): Extension<SharedState>) -> impl IntoResponse {
         let mut state = state.lock().unwrap();
 
+        state.player_list = Some(PlayerList::new(64));
         state.open = true;
-
-        debug!("{:?}", state);
 
         StatusCode::IM_A_TEAPOT
     }

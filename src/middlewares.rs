@@ -61,61 +61,61 @@ impl<S> Layer<S> for OpenCheckLayer {
         Self::Service { inner }
     }
 }
-#[derive(Debug, Clone)]
-pub struct PlayerCheck<T> {
-    inner: T,
-}
+// #[derive(Debug, Clone)]
+// pub struct PlayerCheck<T> {
+//     inner: T,
+// }
 
-impl<S, ResBody, ReqBody> Service<Request<ReqBody>> for PlayerCheck<S>
-where
-    ResBody: Default,
-    S: Service<Request<ReqBody>, Response = Response<ResBody>>,
-    S::Error: Into<BoxError>,
-{
-    type Response = Response<ResBody>;
+// impl<S, ResBody, ReqBody> Service<Request<ReqBody>> for PlayerCheck<S>
+// where
+//     ResBody: Default,
+//     S: Service<Request<ReqBody>, Response = Response<ResBody>>,
+//     S::Error: Into<BoxError>,
+// {
+//     type Response = Response<ResBody>;
 
-    type Error = S::Error;
+//     type Error = S::Error;
 
-    type Future = Either<S::Future, Ready<Result<Self::Response, Self::Error>>>;
+//     type Future = Either<S::Future, Ready<Result<Self::Response, Self::Error>>>;
 
-    fn poll_ready(
-        &mut self,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx)
-    }
+//     fn poll_ready(
+//         &mut self,
+//         cx: &mut std::task::Context<'_>,
+//     ) -> std::task::Poll<Result<(), Self::Error>> {
+//         self.inner.poll_ready(cx)
+//     }
 
-    fn call(&mut self, req: Request<ReqBody>) -> Self::Future {
-        let shared_state = req.extensions().get::<SharedState>().cloned();
+//     fn call(&mut self, req: Request<ReqBody>) -> Self::Future {
+//         let shared_state = req.extensions().get::<SharedState>().cloned();
 
-        if let Some(state) = shared_state {
-            let state = state.lock().unwrap();
-            let player_list = &state.player_list;
+//         if let Some(state) = shared_state {
+//             let state = state.lock().unwrap();
+//             let player_list = &state.player_list;
 
-            if player_list.len() >= PLAYER_AMOUNT {
-                let mut res = Response::default();
+//             if player_list.len() >= PLAYER_AMOUNT {
+//                 let mut res = Response::default();
 
-                *res.status_mut() = StatusCode::FORBIDDEN;
+//                 *res.status_mut() = StatusCode::FORBIDDEN;
 
-                Either::Right(future::ok(res))
-            } else {
-                Either::Left(self.inner.call(req))
-            }
-        } else {
-            let mut res = Response::default();
+//                 Either::Right(future::ok(res))
+//             } else {
+//                 Either::Left(self.inner.call(req))
+//             }
+//         } else {
+//             let mut res = Response::default();
 
-            *res.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
-            Either::Right(future::ok(res))
-        }
-    }
-}
+//             *res.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
+//             Either::Right(future::ok(res))
+//         }
+//     }
+// }
 
-pub struct PlayerCheckLayer;
+// pub struct PlayerCheckLayer;
 
-impl<S> Layer<S> for PlayerCheckLayer {
-    type Service = PlayerCheck<S>;
+// impl<S> Layer<S> for PlayerCheckLayer {
+//     type Service = PlayerCheck<S>;
 
-    fn layer(&self, inner: S) -> Self::Service {
-        Self::Service { inner }
-    }
-}
+//     fn layer(&self, inner: S) -> Self::Service {
+//         Self::Service { inner }
+//     }
+// }

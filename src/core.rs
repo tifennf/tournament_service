@@ -1,5 +1,4 @@
 use std::{
-    collections::HashSet,
     net::SocketAddr,
     sync::{Arc, Mutex},
 };
@@ -15,7 +14,7 @@ use crate::{
 pub async fn run(addr: &SocketAddr) {
     let state = Arc::new(Mutex::new(State {
         tournament: None,
-        player_list: HashSet::new(),
+        player_list: None,
         open: false,
     }));
 

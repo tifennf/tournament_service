@@ -1,12 +1,15 @@
 use axum::{routing::MethodRouter, Router};
 use rand::{prelude::SliceRandom, thread_rng};
 
-use crate::ressources::{Player, Pool};
+use crate::{
+    ressources::{Player, Pool},
+    POOL_SIZE,
+};
 
-pub fn make_pools(number: usize, max_size: usize) -> Vec<Pool> {
-    (0..number)
+pub fn make_pools(amount: usize) -> Vec<Pool> {
+    (0..amount)
         .into_iter()
-        .map(|n| Pool::new(n, max_size))
+        .map(|n| Pool::new(n, POOL_SIZE))
         .collect()
 }
 
@@ -40,4 +43,6 @@ pub fn generate_players(amount: usize) -> Vec<Player> {
     list
 }
 
-// pub fn player_limit_check(list: Vec<Player>) -> bool
+pub fn get_pools_amount(player_amount: usize) -> usize {
+    player_amount / 8
+}
