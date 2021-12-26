@@ -1,5 +1,3 @@
-use std::sync::{Arc, Mutex};
-
 use axum::{
     extract::Extension,
     http::StatusCode,
@@ -10,7 +8,7 @@ use axum::{
 
 use crate::{
     ressources::{Player, State, Tournament},
-    utils, PLAYER_AMOUNT, POOL_AMOUNT, POOL_MAX_SIZE,
+    utils, SharedState, PLAYER_AMOUNT, POOL_AMOUNT, POOL_MAX_SIZE,
 };
 
 pub fn root() -> Router {
@@ -23,7 +21,7 @@ pub fn root() -> Router {
 
 pub fn register_player() -> Router {
     async fn handler(
-        Extension(state): Extension<Arc<Mutex<State>>>,
+        Extension(state): Extension<SharedState>,
         Json(player): Json<Player>,
     ) -> impl IntoResponse {
         let mut state = state.lock().unwrap();
@@ -42,7 +40,7 @@ pub fn register_player() -> Router {
 }
 
 fn print_tournament() -> Router {
-    async fn handler(Extension(state): Extension<Arc<Mutex<State>>>) -> Json<Option<Tournament>> {
+    async fn handler(Extension(state): Extension<SharedState>) -> Json<Option<Tournament>> {
         let state = state.lock().unwrap();
 
         Json(state.tournament.clone())
@@ -52,7 +50,7 @@ fn print_tournament() -> Router {
 }
 
 fn start_tournament() -> Router {
-    async fn handler(Extension(state): Extension<Arc<Mutex<State>>>) -> impl IntoResponse {
+    async fn handler(Extension(state): Extension<SharedState>) -> impl IntoResponse {
         let mut state = state.lock().unwrap();
 
         state.open = true;
@@ -61,29 +59,25 @@ fn start_tournament() -> Router {
     utils::route("/", put(handler))
 }
 fn draw_pools() -> Router {
-    async fn handler(Extension(state): Extension<Arc<Mutex<State>>>) -> impl IntoResponse {
+    async fn handler(Extension(state): Extension<SharedState>) -> impl IntoResponse {
         let mut state = state.lock().unwrap();
 
-        if !state.open {
-            StatusCode::FORBIDDEN
-        } else {
-            let mut tournament = Tournament::new();
+        let mut tournament = Tournament::new();
 
-            tournament.fill(state.player_list.clone());
+        tournament.fill(state.player_list.clone());
 
-            state.tournament = Some(tournament);
+        state.tournament = Some(tournament);
 
-            StatusCode::OK
-        }
+        StatusCode::OK
     }
 
     utils::route("/", put(handler))
 }
 fn stop_tournament() -> Router {
-    async fn handler(Extension(state): Extension<Arc<Mutex<State>>>) {
+    async fn handler(Extension(state): Extension<SharedState>) {
         let mut state = state.lock().unwrap();
 
-        state.tournament = None;
+        *state = State::default();
     }
 
     utils::route("/", delete(handler))

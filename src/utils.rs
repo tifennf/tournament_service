@@ -39,3 +39,5 @@ pub fn generate_players(amount: usize) -> Vec<Player> {
 
     list
 }
+
+// pub fn player_limit_check(list: Vec<Player>) -> bool

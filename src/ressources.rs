@@ -66,4 +66,18 @@ pub struct State {
     pub open: bool,
 }
 
+impl Default for State {
+    fn default() -> Self {
+        Self {
+            tournament: None,
+            player_list: Default::default(),
+            open: false,
+        }
+    }
+}
+
 pub struct ApiResponse {}
+
+pub trait RequestChecker {
+    fn check(&self) -> bool;
+}
