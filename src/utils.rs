@@ -1,9 +1,12 @@
-use axum::{routing::MethodRouter, Router};
+use std::sync::{LockResult, MutexGuard};
+
+use axum::{http::StatusCode, routing::MethodRouter, Router};
 use rand::{prelude::SliceRandom, thread_rng};
+use serde_json::Value;
 
 use crate::{
-    ressources::{Player, Pool},
-    POOL_SIZE,
+    core::{ApiResponse, POOL_SIZE},
+    ressources::{Player, Pool, State},
 };
 
 pub fn make_pools(amount: usize) -> Vec<Pool> {
@@ -43,6 +46,11 @@ pub fn generate_players(amount: usize) -> Vec<Player> {
     list
 }
 
-pub fn get_pools_amount(player_amount: usize) -> usize {
-    player_amount / 8
+pub fn resolve_state(
+    state: LockResult<MutexGuard<'_, State>>,
+) -> Result<MutexGuard<State>, ApiResponse<Value>> {
+    state.map_err(|err| {
+        tracing::error!("Error on lock: {}", err);
+        ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, Value::Null)
+    })
 }

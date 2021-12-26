@@ -2,7 +2,10 @@ use std::collections::HashSet;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{utils, PLAYER_AMOUNT, POOL_AMOUNT, POOL_SIZE};
+use crate::{
+    core::{PLAYER_AMOUNT, POOL_AMOUNT, POOL_SIZE},
+    utils,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Player {
@@ -28,7 +31,7 @@ impl Pool {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Tournament {
     pool_list: Vec<Pool>,
 }
@@ -66,25 +69,11 @@ impl Tournament {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct State {
     pub tournament: Option<Tournament>,
     pub player_list: Option<PlayerList>,
     pub open: bool,
-}
-
-impl Default for State {
-    fn default() -> Self {
-        Self {
-            tournament: None,
-            player_list: None,
-            open: false,
-        }
-    }
-}
-
-pub trait RequestChecker {
-    fn check(&self) -> bool;
 }
 
 #[derive(Debug, Clone, Serialize)]

@@ -1,20 +1,24 @@
 use axum::{
-    extract::Extension,
+    extract::{Extension, Path},
     http::StatusCode,
-    response::IntoResponse,
     routing::{delete, get, post, put},
     Json, Router,
 };
-use tracing::debug;
+use serde_json::Value;
 
 use crate::{
+    core::{ApiResponse, SharedState, POOL_SIZE},
     middlewares::OpenCheckLayer,
     ressources::{Player, PlayerList, State, Tournament},
-    utils, SharedState, POOL_SIZE,
+    utils,
 };
 
+pub async fn not_found() -> ApiResponse<&'static str> {
+    ApiResponse::new(StatusCode::NOT_FOUND, "Not found")
+}
+
 pub fn root() -> Router {
-    pub async fn handler() -> &'static str {
+    async fn handler() -> &'static str {
         "API de tournois TFT pour la structure Xpako\n\nConcepteur: https://github.com/tifennf"
     }
 
@@ -22,69 +26,87 @@ pub fn root() -> Router {
 }
 
 pub fn info() -> Router {
-    async fn handler(Extension(state): Extension<SharedState>) -> Json<State> {
-        let state = state.lock().unwrap();
+    async fn handler(
+        Extension(state): Extension<SharedState>,
+    ) -> Result<ApiResponse<State>, ApiResponse<Value>> {
+        let state = utils::resolve_state(state.lock())?;
 
-        Json(state.clone())
+        Ok(ApiResponse::new(StatusCode::OK.into(), state.clone()))
     }
 
     utils::route("/info", get(handler))
 }
-pub fn register_player() -> Router {
+fn register_player() -> Router {
     async fn handler(
         Extension(state): Extension<SharedState>,
         Json(player): Json<Player>,
-    ) -> impl IntoResponse {
-        let mut state = state.lock().unwrap();
+    ) -> Result<ApiResponse<Value>, ApiResponse<Value>> {
+        let mut state = utils::resolve_state(state.lock())?;
 
         let player_list = &mut state.player_list;
 
         if let Some(player_list) = player_list {
             player_list.insert(player);
         }
-
-        StatusCode::OK
+        Ok(ApiResponse::new(StatusCode::OK, Value::Null))
     }
 
     utils::route("/player", post(handler))
 }
 
 fn draw_pools() -> Router {
-    async fn handler(Extension(state): Extension<SharedState>) -> impl IntoResponse {
-        let mut state = state.lock().unwrap();
+    async fn handler(
+        Extension(state): Extension<SharedState>,
+    ) -> Result<ApiResponse<Tournament>, ApiResponse<Value>> {
+        let mut state = utils::resolve_state(state.lock())?;
 
-        let player_list = state.player_list.as_ref().unwrap();
-        let mut tournament = Tournament::new(player_list.max_amount.0 / POOL_SIZE);
+        let player_list = state.player_list.as_ref();
 
-        tournament.fill(player_list.list());
+        if let Some(player_list) = player_list {
+            let mut tournament = Tournament::new(player_list.max_amount.0 / POOL_SIZE);
 
-        state.tournament = Some(tournament.clone());
+            tournament.fill(player_list.list());
 
-        Json(tournament)
+            state.tournament = Some(tournament.clone());
+
+            Ok(ApiResponse::new(StatusCode::OK, tournament))
+        } else {
+            Err(ApiResponse::new(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Value::Null,
+            ))
+        }
     }
 
     utils::route("/player", get(handler))
 }
 
-pub fn start_tournament() -> Router {
-    async fn handler(Extension(state): Extension<SharedState>) -> impl IntoResponse {
-        let mut state = state.lock().unwrap();
+fn start_tournament() -> Router {
+    async fn handler(
+        Extension(state): Extension<SharedState>,
+        amount: Option<Path<usize>>,
+    ) -> Result<ApiResponse<Value>, ApiResponse<Value>> {
+        let mut state = utils::resolve_state(state.lock())?;
 
-        state.player_list = Some(PlayerList::new(64));
+        let amount = amount.unwrap_or(Path(64));
+
+        state.player_list = Some(PlayerList::new(amount.0));
         state.open = true;
 
-        StatusCode::IM_A_TEAPOT
+        Ok(ApiResponse::new(StatusCode::OK, Value::Null))
     }
 
     utils::route("/", put(handler))
 }
 fn stop_tournament() -> Router {
-    async fn handler(Extension(state): Extension<SharedState>) -> impl IntoResponse {
-        let mut state = state.lock().unwrap();
+    async fn handler(
+        Extension(state): Extension<SharedState>,
+    ) -> Result<ApiResponse<Value>, ApiResponse<Value>> {
+        let mut state = utils::resolve_state(state.lock())?;
 
         *state = State::default();
 
-        StatusCode::OK
+        Ok(ApiResponse::new(StatusCode::OK, Value::Null))
     }
 
     utils::route("/", delete(handler))
