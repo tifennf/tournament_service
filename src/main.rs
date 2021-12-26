@@ -1,5 +1,11 @@
 use std::net::SocketAddr;
 
+pub mod core;
+pub mod middlewares;
+pub mod ressources;
+pub mod routes;
+pub mod utils;
+
 #[tokio::main]
 async fn main() {
     if std::env::var_os("RUST_LOG").is_none() {
@@ -7,8 +13,8 @@ async fn main() {
     }
     tracing_subscriber::fmt::init();
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::debug!("Listening on address: {}", addr);
 
-    tournament_service::core::run(&addr).await;
+    core::run(&addr).await;
 }
