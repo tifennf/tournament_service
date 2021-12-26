@@ -92,7 +92,7 @@ where
             let state = state.lock().unwrap();
             let player_list = &state.player_list;
 
-            if player_list.len() > PLAYER_AMOUNT {
+            if player_list.len() >= PLAYER_AMOUNT {
                 let mut res = Response::default();
 
                 *res.status_mut() = StatusCode::FORBIDDEN;

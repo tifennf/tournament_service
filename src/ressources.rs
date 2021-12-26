@@ -1,8 +1,10 @@
+use std::collections::HashSet;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{utils, POOL_AMOUNT, POOL_MAX_SIZE};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Player {
     pub name: String,
 }
@@ -36,7 +38,9 @@ impl Tournament {
         Tournament { pool_list }
     }
 
-    pub fn fill(&mut self, player_list: Vec<Player>) {
+    pub fn fill(&mut self, player_list: HashSet<Player>) {
+        let player_list = player_list.clone().into_iter().collect();
+
         let player_list = utils::shuffle_players(player_list);
 
         let pool_list = self
@@ -60,9 +64,10 @@ impl Tournament {
     }
 }
 
+#[derive(Debug)]
 pub struct State {
     pub tournament: Option<Tournament>,
-    pub player_list: Vec<Player>,
+    pub player_list: HashSet<Player>,
     pub open: bool,
 }
 

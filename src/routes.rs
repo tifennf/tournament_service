@@ -6,17 +6,17 @@ use axum::{
     routing::{delete, get, post, put},
     Json, Router,
 };
+use tracing::debug;
 
 use crate::{
     middlewares::{OpenCheckLayer, PlayerCheckLayer},
     ressources::{Player, State, Tournament},
-    utils, SharedState, PLAYER_AMOUNT, POOL_AMOUNT, POOL_MAX_SIZE,
+    utils, SharedState,
 };
 
 pub fn root() -> Router {
     pub async fn handler() -> &'static str {
-        "API de tournois TFT pour la structure Xpako\n\n
-		Concepteur: Tifenn F."
+        "API de tournois TFT pour la structure Xpako\n\nConcepteur: https://github.com/tifennf"
     }
 
     utils::route("/", get(handler))
@@ -31,7 +31,7 @@ pub fn register_player() -> Router {
 
         let player_list = &mut state.player_list;
 
-        player_list.push(player);
+        player_list.insert(player);
 
         StatusCode::OK
     }
@@ -49,9 +49,9 @@ fn draw_pools() -> Router {
 
         tournament.fill(state.player_list.clone());
 
-        state.tournament = Some(tournament);
+        state.tournament = Some(tournament.clone());
 
-        StatusCode::OK
+        Json(tournament)
     }
 
     utils::route("/player", get(handler))
@@ -66,20 +66,26 @@ fn print_tournament() -> Router {
 
     utils::route("/", get(handler))
 }
-fn start_tournament() -> Router {
+pub fn start_tournament() -> Router {
     async fn handler(Extension(state): Extension<SharedState>) -> impl IntoResponse {
         let mut state = state.lock().unwrap();
 
         state.open = true;
+
+        debug!("{:?}", state);
+
+        StatusCode::IM_A_TEAPOT
     }
 
     utils::route("/", put(handler))
 }
 fn stop_tournament() -> Router {
-    async fn handler(Extension(state): Extension<SharedState>) {
+    async fn handler(Extension(state): Extension<SharedState>) -> impl IntoResponse {
         let mut state = state.lock().unwrap();
 
         *state = State::default();
+
+        StatusCode::OK
     }
 
     utils::route("/", delete(handler))

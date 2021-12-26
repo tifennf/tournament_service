@@ -1,4 +1,5 @@
 use std::{
+    collections::HashSet,
     net::SocketAddr,
     sync::{Arc, Mutex},
 };
@@ -7,16 +8,15 @@ use axum::{AddExtensionLayer, Router};
 use tower_http::trace::TraceLayer;
 
 use crate::{
-    middlewares::{OpenCheckLayer, RequestGuard},
     ressources::State,
-    routes::{manage_tournament, register_player, root},
+    routes::{manage_tournament, root},
 };
 
 pub async fn run(addr: &SocketAddr) {
     let state = Arc::new(Mutex::new(State {
         tournament: None,
-        player_list: Vec::new(),
-        open: true,
+        player_list: HashSet::new(),
+        open: false,
     }));
 
     let app = Router::new()
