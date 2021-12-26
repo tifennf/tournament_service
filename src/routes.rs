@@ -22,6 +22,15 @@ pub fn root() -> Router {
     utils::route("/", get(handler))
 }
 
+pub fn info() -> Router {
+    async fn handler(Extension(state): Extension<SharedState>) -> Json<State> {
+        let state = state.lock().unwrap();
+
+        Json(state.clone())
+    }
+
+    utils::route("/info", get(handler))
+}
 pub fn register_player() -> Router {
     async fn handler(
         Extension(state): Extension<SharedState>,
@@ -57,15 +66,6 @@ fn draw_pools() -> Router {
     utils::route("/player", get(handler))
 }
 
-fn print_tournament() -> Router {
-    async fn handler(Extension(state): Extension<SharedState>) -> Json<Option<Tournament>> {
-        let state = state.lock().unwrap();
-
-        Json(state.tournament.clone())
-    }
-
-    utils::route("/", get(handler))
-}
 pub fn start_tournament() -> Router {
     async fn handler(Extension(state): Extension<SharedState>) -> impl IntoResponse {
         let mut state = state.lock().unwrap();
@@ -96,7 +96,6 @@ pub fn manage_tournament() -> Router {
         .merge(draw_pools())
         .merge(register_player())
         .layer(OpenCheckLayer)
-        .merge(print_tournament())
         .merge(start_tournament())
         .merge(stop_tournament());
 

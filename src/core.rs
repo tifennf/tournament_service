@@ -9,7 +9,7 @@ use tower_http::trace::TraceLayer;
 
 use crate::{
     ressources::State,
-    routes::{manage_tournament, root},
+    routes::{info, manage_tournament, root},
 };
 
 pub async fn run(addr: &SocketAddr) {
@@ -21,6 +21,7 @@ pub async fn run(addr: &SocketAddr) {
 
     let app = Router::new()
         .merge(manage_tournament())
+        .merge(info())
         .merge(root())
         .layer(TraceLayer::new_for_http())
         .layer(AddExtensionLayer::new(state));

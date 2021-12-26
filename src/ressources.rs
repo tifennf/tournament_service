@@ -64,7 +64,7 @@ impl Tournament {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize)]
 pub struct State {
     pub tournament: Option<Tournament>,
     pub player_list: HashSet<Player>,
