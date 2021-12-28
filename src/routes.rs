@@ -102,6 +102,7 @@ fn init_tournament() -> Router {
             ApiResponse::new(StatusCode::BAD_REQUEST, Value::String(err.to_string()))
         })?;
 
+        *state = State::default();
         state.player_list = Some(player_list);
         state.tournament_name = Some(body.name);
 
