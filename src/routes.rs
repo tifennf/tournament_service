@@ -1,7 +1,7 @@
 use axum::{
-    extract::{Extension, Path},
+    extract::Extension,
     http::StatusCode,
-    routing::{delete, get, post, put},
+    routing::{get, post},
     Json, Router,
 };
 use serde_json::Value;
@@ -9,7 +9,7 @@ use serde_json::Value;
 use crate::{
     core::{ApiResponse, SharedState, POOL_SIZE},
     middlewares::OpenCheckLayer,
-    ressources::{Player, PlayerList, State, Tournament},
+    ressources::{InitTournament, InscriptionsState, Player, PlayerList, State, Tournament},
     utils,
 };
 
@@ -43,18 +43,24 @@ fn register_player() -> Router {
     ) -> Result<ApiResponse<Value>, ApiResponse<Value>> {
         let mut state = utils::resolve_state(state.lock())?;
 
-        let player_list = &mut state.player_list;
+        let player_list = state.player_list.as_mut().ok_or(ApiResponse::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Value::Null,
+        ))?;
 
-        if let Some(player_list) = player_list {
-            player_list.insert(player);
-        }
-        Ok(ApiResponse::new(StatusCode::OK, Value::Null))
+        let status = if player_list.insert(player) {
+            StatusCode::OK
+        } else {
+            StatusCode::FORBIDDEN
+        };
+
+        Ok(ApiResponse::new(status, Value::Null))
     }
 
-    utils::route("/player", post(handler))
+    utils::route("/inscriptions", post(handler))
 }
 
-fn draw_pools() -> Router {
+fn start_tournament() -> Router {
     async fn handler(
         Extension(state): Extension<SharedState>,
     ) -> Result<ApiResponse<Tournament>, ApiResponse<Value>> {
@@ -78,27 +84,26 @@ fn draw_pools() -> Router {
         }
     }
 
-    utils::route("/player", get(handler))
+    utils::route("/", get(handler))
 }
 
-fn start_tournament() -> Router {
+fn init_tournament() -> Router {
     async fn handler(
         Extension(state): Extension<SharedState>,
-        amount: Option<Path<usize>>,
+        Json(body): Json<InitTournament>,
     ) -> Result<ApiResponse<Value>, ApiResponse<Value>> {
         let mut state = utils::resolve_state(state.lock())?;
 
-        let amount = amount.unwrap_or(Path(64));
+        let amount = body.max_player;
 
-        state.player_list = Some(PlayerList::new(amount.0));
-        state.open = true;
+        state.player_list = Some(PlayerList::new(amount));
 
         Ok(ApiResponse::new(StatusCode::OK, Value::Null))
     }
 
-    utils::route("/", put(handler))
+    utils::route("/", post(handler))
 }
-fn stop_tournament() -> Router {
+fn reset_tournament() -> Router {
     async fn handler(
         Extension(state): Extension<SharedState>,
     ) -> Result<ApiResponse<Value>, ApiResponse<Value>> {
@@ -109,16 +114,41 @@ fn stop_tournament() -> Router {
         Ok(ApiResponse::new(StatusCode::OK, Value::Null))
     }
 
-    utils::route("/", delete(handler))
+    utils::route("/reset", get(handler))
+}
+fn open_inscriptions() -> Router {
+    async fn handler(
+        Extension(state): Extension<SharedState>,
+        inscriptions: Option<Json<InscriptionsState>>,
+    ) -> Result<ApiResponse<bool>, ApiResponse<Value>> {
+        let mut state = utils::resolve_state(state.lock())?;
+
+        match inscriptions {
+            Some(Json(inscriptions)) => {
+                let open = inscriptions.open;
+
+                state.open = open;
+
+                Ok(ApiResponse::new(StatusCode::OK, open))
+            }
+            None => Err(ApiResponse::new(
+                StatusCode::BAD_REQUEST,
+                "You need to precise if true or false".into(),
+            )),
+        }
+    }
+
+    utils::route("/inscriptions/status", post(handler))
 }
 
 pub fn manage_tournament() -> Router {
     let tournament_routes = Router::new()
-        .merge(draw_pools())
+        .merge(start_tournament())
         .merge(register_player())
         .layer(OpenCheckLayer)
-        .merge(start_tournament())
-        .merge(stop_tournament());
+        .merge(open_inscriptions())
+        .merge(init_tournament())
+        .merge(reset_tournament());
 
     Router::new().nest("/tournament", tournament_routes)
 }

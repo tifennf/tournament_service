@@ -107,16 +107,19 @@ impl PoolAmount {
 pub struct PlayerList {
     player_list: HashSet<Player>,
     pub max_amount: PlayerAmount,
+    pub current_amount: usize,
 }
 
 impl PlayerList {
     pub fn new(max_amount: usize) -> Self {
         let amount = PlayerAmount::new(max_amount).unwrap();
         let player_list = HashSet::new();
+        let current_amount = player_list.len();
 
         Self {
             player_list,
             max_amount: amount,
+            current_amount,
         }
     }
 
@@ -124,10 +127,26 @@ impl PlayerList {
         let max_len = self.max_amount.0;
         let list_len = self.player_list.len();
 
-        list_len < max_len && self.player_list.insert(player)
+        let condition = list_len < max_len && self.player_list.insert(player);
+        if condition {
+            self.current_amount = self.player_list.len()
+        }
+
+        condition
     }
 
     pub fn list(&self) -> &HashSet<Player> {
         &self.player_list
     }
+}
+
+#[derive(Deserialize)]
+pub struct InscriptionsState {
+    pub open: bool,
+}
+
+#[derive(Deserialize)]
+pub struct InitTournament {
+    pub max_player: usize,
+    pub name: String,
 }

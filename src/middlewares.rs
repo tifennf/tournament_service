@@ -34,7 +34,7 @@ where
         if let Some(state) = shared_state {
             let state = state.lock().unwrap();
 
-            if !state.open {
+            if !state.open || state.player_list.is_none() {
                 let mut res = Response::default();
 
                 *res.status_mut() = StatusCode::FORBIDDEN;
