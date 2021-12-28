@@ -9,7 +9,9 @@ use serde_json::Value;
 use crate::{
     core::{ApiResponse, SharedState, POOL_SIZE},
     middlewares::OpenCheckLayer,
-    ressources::{InitTournament, InscriptionsState, Player, PlayerList, State, Tournament},
+    ressources::{
+        InitTournament, InscriptionsState, Player, PlayerList, PlayerVerified, State, Tournament,
+    },
     utils,
 };
 
@@ -31,7 +33,7 @@ pub fn info() -> Router {
     ) -> Result<ApiResponse<State>, ApiResponse<Value>> {
         let state = utils::resolve_state(state.lock())?;
 
-        Ok(ApiResponse::new(StatusCode::OK.into(), state.clone()))
+        Ok(ApiResponse::new(StatusCode::OK, state.clone()))
     }
 
     utils::route("/info", get(handler))
@@ -43,10 +45,13 @@ fn register_player() -> Router {
     ) -> Result<ApiResponse<Value>, ApiResponse<Value>> {
         let mut state = utils::resolve_state(state.lock())?;
 
-        let player_list = state.player_list.as_mut().ok_or(ApiResponse::new(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Value::Null,
-        ))?;
+        let player_list = state
+            .player_list
+            .as_mut()
+            .ok_or_else(|| ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, Value::Null))?;
+
+        let player = PlayerVerified::try_from(player)
+            .map_err(|_| ApiResponse::new(StatusCode::BAD_REQUEST, Value::Null))?;
 
         let status = if player_list.insert(player) {
             StatusCode::OK
@@ -63,7 +68,7 @@ fn register_player() -> Router {
 fn start_tournament() -> Router {
     async fn handler(
         Extension(state): Extension<SharedState>,
-    ) -> Result<ApiResponse<Tournament>, ApiResponse<Value>> {
+    ) -> Result<ApiResponse<State>, ApiResponse<Value>> {
         let mut state = utils::resolve_state(state.lock())?;
 
         let player_list = state.player_list.as_ref();
@@ -73,14 +78,11 @@ fn start_tournament() -> Router {
 
             tournament.fill(player_list.list());
 
-            state.tournament = Some(tournament.clone());
+            state.tournament = Some(tournament);
 
-            Ok(ApiResponse::new(StatusCode::OK, tournament))
+            Ok(ApiResponse::new(StatusCode::OK, state.clone()))
         } else {
-            Err(ApiResponse::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Value::Null,
-            ))
+            Err(ApiResponse::new(StatusCode::FORBIDDEN, Value::Null))
         }
     }
 
@@ -91,14 +93,15 @@ fn init_tournament() -> Router {
     async fn handler(
         Extension(state): Extension<SharedState>,
         Json(body): Json<InitTournament>,
-    ) -> Result<ApiResponse<Value>, ApiResponse<Value>> {
+    ) -> Result<ApiResponse<State>, ApiResponse<Value>> {
         let mut state = utils::resolve_state(state.lock())?;
 
         let amount = body.max_player;
 
         state.player_list = Some(PlayerList::new(amount));
+        state.tournament_name = Some(body.name);
 
-        Ok(ApiResponse::new(StatusCode::OK, Value::Null))
+        Ok(ApiResponse::new(StatusCode::OK, state.clone()))
     }
 
     utils::route("/", post(handler))
@@ -143,9 +146,9 @@ fn open_inscriptions() -> Router {
 
 pub fn manage_tournament() -> Router {
     let tournament_routes = Router::new()
-        .merge(start_tournament())
         .merge(register_player())
         .layer(OpenCheckLayer)
+        .merge(start_tournament())
         .merge(open_inscriptions())
         .merge(init_tournament())
         .merge(reset_tournament());

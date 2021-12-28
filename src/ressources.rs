@@ -25,7 +25,7 @@ impl DiscordName {
             let mut i = 0;
 
             while tag.len() < 4 {
-                tag.insert_str(i, "0");
+                tag.insert(i, '0');
                 i += 1;
             }
 
@@ -45,12 +45,43 @@ impl DiscordName {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Player {
     pub league_name: String,
+    pub discord_name: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct PlayerVerified {
+    pub league_name: String,
     pub discord_name: DiscordName,
+}
+
+impl TryFrom<Player> for PlayerVerified {
+    type Error = Player;
+
+    fn try_from(value: Player) -> Result<Self, Self::Error> {
+        let (name, tag) = {
+            let result = &value.discord_name.split('#').collect::<Vec<&str>>();
+            if result.len() != 2 {
+                return Err(value);
+            }
+
+            let tag: u16 = result[1].parse().map_err(|_| value.clone())?;
+
+            (result[0], tag)
+        };
+
+        let discord_name = DiscordName::new(name.to_string(), tag).map_err(|_| value.clone())?;
+
+        let player = Self {
+            league_name: value.league_name,
+            discord_name,
+        };
+
+        Ok(player)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pool {
-    player_list: Vec<Player>,
+    player_list: Vec<PlayerVerified>,
     id: usize,
     amount: PoolAmount,
 }
@@ -79,7 +110,7 @@ impl Tournament {
         Tournament { pool_list }
     }
 
-    pub fn fill(&mut self, player_list: &HashSet<Player>) {
+    pub fn fill(&mut self, player_list: &HashSet<PlayerVerified>) {
         let player_list = player_list.clone().into_iter().collect();
 
         let player_list = utils::shuffle_players(player_list);
@@ -110,6 +141,7 @@ pub struct State {
     pub tournament: Option<Tournament>,
     pub player_list: Option<PlayerList>,
     pub open: bool,
+    pub tournament_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -141,7 +173,7 @@ impl PoolAmount {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PlayerList {
-    list: HashSet<Player>,
+    list: HashSet<PlayerVerified>,
     pub max_amount: PlayerAmount,
     pub current_amount: usize,
 }
@@ -159,7 +191,7 @@ impl PlayerList {
         }
     }
 
-    pub fn insert(&mut self, player: Player) -> bool {
+    pub fn insert(&mut self, player: PlayerVerified) -> bool {
         let max_len = self.max_amount.0;
         let list_len = self.list.len();
 
@@ -171,7 +203,7 @@ impl PlayerList {
         condition
     }
 
-    pub fn list(&self) -> &HashSet<Player> {
+    pub fn list(&self) -> &HashSet<PlayerVerified> {
         &self.list
     }
 }

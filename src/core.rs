@@ -18,6 +18,7 @@ pub async fn run(addr: &SocketAddr) {
     let state = Arc::new(Mutex::new(State {
         tournament: None,
         player_list: None,
+        tournament_name: None,
         open: false,
     }));
 
@@ -41,6 +42,7 @@ pub const POOL_SIZE: usize = 8;
 
 pub type SharedState = Arc<Mutex<State>>;
 
+#[derive(Debug, Clone)]
 pub struct ApiResponse<D> {
     inner: Json<ApiResponseInner<D>>,
 }

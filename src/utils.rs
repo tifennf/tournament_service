@@ -6,7 +6,7 @@ use serde_json::Value;
 
 use crate::{
     core::{ApiResponse, POOL_SIZE},
-    ressources::{Player, Pool, State},
+    ressources::{PlayerVerified, Pool, State},
 };
 
 pub fn make_pools(amount: usize) -> Vec<Pool> {
@@ -20,7 +20,7 @@ pub fn route(path: &str, method_router: MethodRouter) -> Router {
     Router::new().route(path, method_router)
 }
 
-pub fn shuffle_players(mut list: Vec<Player>) -> Vec<Player> {
+pub fn shuffle_players(mut list: Vec<PlayerVerified>) -> Vec<PlayerVerified> {
     let mut rng = thread_rng();
 
     list.shuffle(&mut rng);
