@@ -8,8 +8,44 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct Player {
+pub struct DiscordName {
     pub name: String,
+    pub tag: String,
+}
+
+impl DiscordName {
+    pub fn new(name: String, tag: u16) -> Result<Self, &'static str> {
+        if tag > 9999 {
+            return Err("Invalid discord tag");
+        }
+
+        let tag = if tag < 1000 {
+            let mut tag = tag.to_string();
+
+            let mut i = 0;
+
+            while tag.len() < 4 {
+                tag.insert_str(i, "0");
+                i += 1;
+            }
+
+            tag
+        } else {
+            tag.to_string()
+        };
+
+        Ok(Self { name, tag })
+    }
+
+    pub fn get_full_name(&self) -> String {
+        format!("{}#{}", self.name, self.tag)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct Player {
+    pub league_name: String,
+    pub discord_name: DiscordName,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -105,7 +141,7 @@ impl PoolAmount {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PlayerList {
-    player_list: HashSet<Player>,
+    list: HashSet<Player>,
     pub max_amount: PlayerAmount,
     pub current_amount: usize,
 }
@@ -113,11 +149,11 @@ pub struct PlayerList {
 impl PlayerList {
     pub fn new(max_amount: usize) -> Self {
         let amount = PlayerAmount::new(max_amount).unwrap();
-        let player_list = HashSet::new();
-        let current_amount = player_list.len();
+        let list = HashSet::new();
+        let current_amount = list.len();
 
         Self {
-            player_list,
+            list,
             max_amount: amount,
             current_amount,
         }
@@ -125,18 +161,18 @@ impl PlayerList {
 
     pub fn insert(&mut self, player: Player) -> bool {
         let max_len = self.max_amount.0;
-        let list_len = self.player_list.len();
+        let list_len = self.list.len();
 
-        let condition = list_len < max_len && self.player_list.insert(player);
+        let condition = list_len < max_len && self.list.insert(player);
         if condition {
-            self.current_amount = self.player_list.len()
+            self.current_amount = self.list.len()
         }
 
         condition
     }
 
     pub fn list(&self) -> &HashSet<Player> {
-        &self.player_list
+        &self.list
     }
 }
 

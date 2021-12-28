@@ -28,24 +28,6 @@ pub fn shuffle_players(mut list: Vec<Player>) -> Vec<Player> {
     list
 }
 
-pub fn generate_players(amount: usize) -> Vec<Player> {
-    let mut list = Vec::new();
-
-    let mut i = 0;
-
-    while i < amount {
-        let player = Player {
-            name: i.to_string(),
-        };
-
-        list.push(player);
-
-        i += 1;
-    }
-
-    list
-}
-
 pub fn resolve_state(
     state: LockResult<MutexGuard<'_, State>>,
 ) -> Result<MutexGuard<State>, ApiResponse<Value>> {
