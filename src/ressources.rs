@@ -136,14 +136,6 @@ impl Tournament {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Default)]
-pub struct State {
-    pub tournament: Option<Tournament>,
-    pub player_list: Option<PlayerList>,
-    pub open: bool,
-    pub tournament_name: Option<String>,
-}
-
 #[derive(Debug, Clone, Serialize)]
 
 pub struct PlayerAmount(pub usize);
@@ -179,16 +171,16 @@ pub struct PlayerList {
 }
 
 impl PlayerList {
-    pub fn new(max_amount: usize) -> Self {
-        let amount = PlayerAmount::new(max_amount).unwrap();
+    pub fn new(max_amount: usize) -> Result<Self, &'static str> {
+        let amount = PlayerAmount::new(max_amount)?;
         let list = HashSet::new();
         let current_amount = list.len();
 
-        Self {
+        Ok(Self {
             list,
             max_amount: amount,
             current_amount,
-        }
+        })
     }
 
     pub fn insert(&mut self, player: PlayerVerified) -> bool {

@@ -8,11 +8,9 @@ use axum::{AddExtensionLayer, Json, Router};
 use serde::Serialize;
 use tower_http::trace::TraceLayer;
 
+use crate::ressources::{PlayerList, Tournament};
 use crate::routes::not_found;
-use crate::{
-    ressources::State,
-    routes::{info, manage_tournament, root},
-};
+use crate::routes::{info, manage_tournament, root};
 
 pub async fn run(addr: &SocketAddr) {
     let state = Arc::new(Mutex::new(State {
@@ -72,4 +70,12 @@ impl<D: Serialize> IntoResponse for ApiResponse<D> {
 struct ApiResponseInner<D> {
     status: u16,
     data: D,
+}
+
+#[derive(Debug, Clone, Serialize, Default)]
+pub struct State {
+    pub tournament: Option<Tournament>,
+    pub player_list: Option<PlayerList>,
+    pub open: bool,
+    pub tournament_name: Option<String>,
 }

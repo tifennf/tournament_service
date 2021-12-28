@@ -7,10 +7,10 @@ use axum::{
 use serde_json::Value;
 
 use crate::{
-    core::{ApiResponse, SharedState, POOL_SIZE},
+    core::{ApiResponse, SharedState, State, POOL_SIZE},
     middlewares::OpenCheckLayer,
     ressources::{
-        InitTournament, InscriptionsState, Player, PlayerList, PlayerVerified, State, Tournament,
+        InitTournament, InscriptionsState, Player, PlayerList, PlayerVerified, Tournament,
     },
     utils,
 };
@@ -98,7 +98,11 @@ fn init_tournament() -> Router {
 
         let amount = body.max_player;
 
-        state.player_list = Some(PlayerList::new(amount));
+        let player_list = PlayerList::new(amount).map_err(|err| {
+            ApiResponse::new(StatusCode::BAD_REQUEST, Value::String(err.to_string()))
+        })?;
+
+        state.player_list = Some(player_list);
         state.tournament_name = Some(body.name);
 
         Ok(ApiResponse::new(StatusCode::OK, state.clone()))

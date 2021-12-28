@@ -5,8 +5,8 @@ use rand::{prelude::SliceRandom, thread_rng};
 use serde_json::Value;
 
 use crate::{
-    core::{ApiResponse, POOL_SIZE},
-    ressources::{PlayerVerified, Pool, State},
+    core::{ApiResponse, State, POOL_SIZE},
+    ressources::{PlayerVerified, Pool},
 };
 
 pub fn make_pools(amount: usize) -> Vec<Pool> {
