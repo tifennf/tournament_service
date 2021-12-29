@@ -67,12 +67,12 @@ impl TryFrom<Player> for PlayerVerified {
             league_name,
         } = value.clone();
 
-        let discord_name = DiscordName::new(discord_name, 1000).map_err(|_| value)?;
+        let discord_name = DiscordName::new(discord_name, tag).map_err(|_| value)?;
 
         let player = Self {
             league_name,
             discord_name,
-            discord_id: 2222,
+            discord_id,
         };
 
         Ok(player)
