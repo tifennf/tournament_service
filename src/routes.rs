@@ -1,7 +1,7 @@
 use axum::{
     extract::Extension,
     http::StatusCode,
-    routing::{get, post},
+    routing::{delete, get, post},
     Json, Router,
 };
 use serde_json::Value;
@@ -63,6 +63,32 @@ fn register_player() -> Router {
     }
 
     utils::route("/inscriptions", post(handler))
+}
+fn remove_player() -> Router {
+    async fn handler(
+        Extension(state): Extension<SharedState>,
+        Json(player): Json<Player>,
+    ) -> Result<ApiResponse<Value>, ApiResponse<Value>> {
+        let mut state = utils::resolve_state(state.lock())?;
+
+        let player_list = state
+            .player_list
+            .as_mut()
+            .ok_or_else(|| ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, Value::Null))?;
+
+        let player = PlayerVerified::try_from(player)
+            .map_err(|_| ApiResponse::new(StatusCode::BAD_REQUEST, Value::Null))?;
+
+        let status = if player_list.remove(player) {
+            StatusCode::OK
+        } else {
+            StatusCode::FORBIDDEN
+        };
+
+        Ok(ApiResponse::new(status, Value::Null))
+    }
+
+    utils::route("/inscriptions", delete(handler))
 }
 
 fn start_tournament() -> Router {
@@ -151,6 +177,7 @@ fn open_inscriptions() -> Router {
 
 pub fn manage_tournament() -> Router {
     let tournament_routes = Router::new()
+        .merge(remove_player())
         .merge(register_player())
         .layer(OpenCheckLayer)
         .merge(start_tournament())

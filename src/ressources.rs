@@ -200,11 +200,16 @@ impl PlayerList {
         let max_len = self.max_amount.0;
         let list_len = self.list.len();
 
-        let x = self.list.contains(&player);
-
-        debug!("ALREADY EXIST ? {:?}", x);
-
         let condition = list_len < max_len && self.list.insert(player);
+        if condition {
+            self.current_amount = self.list.len()
+        }
+
+        condition
+    }
+
+    pub fn remove(&mut self, player: PlayerVerified) -> bool {
+        let condition = self.list.remove(&player);
         if condition {
             self.current_amount = self.list.len()
         }
