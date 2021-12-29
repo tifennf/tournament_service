@@ -46,8 +46,8 @@ impl DiscordName {
 pub struct Player {
     pub league_name: String,
     pub discord_username: String,
-    pub tag: u16,
-    pub discord_id: usize,
+    pub tag: String,
+    pub discord_id: String,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct PlayerVerified {
@@ -67,12 +67,12 @@ impl TryFrom<Player> for PlayerVerified {
             league_name,
         } = value.clone();
 
-        let discord_name = DiscordName::new(discord_name, tag).map_err(|_| value)?;
+        let discord_name = DiscordName::new(discord_name, 1000).map_err(|_| value)?;
 
         let player = Self {
             league_name,
             discord_name,
-            discord_id,
+            discord_id: 2222,
         };
 
         Ok(player)

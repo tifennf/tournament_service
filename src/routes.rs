@@ -51,7 +51,6 @@ fn register_player() -> Router {
             .as_mut()
             .ok_or_else(|| ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, Value::Null))?;
 
-        debug!("player: {:#?}", player);
         let player = PlayerVerified::try_from(player)
             .map_err(|_| ApiResponse::new(StatusCode::IM_A_TEAPOT, Value::Null))?;
 
@@ -60,8 +59,6 @@ fn register_player() -> Router {
         } else {
             StatusCode::FORBIDDEN
         };
-
-        debug!("status: {}", status);
 
         Ok(ApiResponse::new(status, Value::Null))
     }
