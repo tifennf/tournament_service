@@ -15,6 +15,46 @@ use crate::{
     utils,
 };
 
+pub fn reload_players() -> Router {
+    async fn handler(
+        Extension(state): Extension<SharedState>,
+    ) -> Result<ApiResponse<Value>, ApiResponse<Value>> {
+        let mut state = utils::resolve_state(state.lock())?;
+
+        let player_list = utils::get_plist().map_err(|err| {
+            ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, Value::String(err))
+        })?;
+
+        state.player_list = Some(player_list);
+
+        Ok(ApiResponse::new(StatusCode::OK, Value::Null))
+    }
+
+    utils::route("/reload", get(handler))
+}
+pub fn save_players() -> Router {
+    async fn handler(
+        Extension(state): Extension<SharedState>,
+    ) -> Result<ApiResponse<Value>, ApiResponse<Value>> {
+        let state = utils::resolve_state(state.lock())?;
+
+        let player_list = (state.player_list).clone().ok_or_else(|| {
+            ApiResponse::new(
+                StatusCode::FORBIDDEN,
+                Value::String("There is no player list yet to reload".to_string()),
+            )
+        })?;
+
+        utils::save_plist(&player_list).map_err(|err| {
+            ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, Value::String(err))
+        })?;
+
+        Ok(ApiResponse::new(StatusCode::OK, Value::Null))
+    }
+
+    utils::route("/save", get(handler))
+}
+
 pub async fn not_found() -> ApiResponse<&'static str> {
     ApiResponse::new(StatusCode::NOT_FOUND, "Not found")
 }
@@ -54,6 +94,10 @@ fn register_player() -> Router {
             .map_err(|_| ApiResponse::new(StatusCode::BAD_REQUEST, Value::Null))?;
 
         let status = if player_list.insert(player) {
+            utils::save_plist(&player_list).map_err(|err| {
+                ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, Value::String(err))
+            })?;
+
             StatusCode::OK
         } else {
             StatusCode::FORBIDDEN
@@ -80,6 +124,10 @@ fn remove_player() -> Router {
             .map_err(|_| ApiResponse::new(StatusCode::BAD_REQUEST, Value::Null))?;
 
         let status = if player_list.remove(player) {
+            utils::save_plist(&player_list).map_err(|err| {
+                ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, Value::String(err))
+            })?;
+
             StatusCode::OK
         } else {
             StatusCode::FORBIDDEN
@@ -150,6 +198,7 @@ fn reset_tournament() -> Router {
 
     utils::route("/reset", get(handler))
 }
+
 fn open_inscriptions() -> Router {
     async fn handler(
         Extension(state): Extension<SharedState>,

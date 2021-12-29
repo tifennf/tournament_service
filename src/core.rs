@@ -9,8 +9,8 @@ use serde::Serialize;
 use tower_http::trace::TraceLayer;
 
 use crate::ressources::{PlayerList, Tournament};
-use crate::routes::not_found;
-use crate::routes::{info, manage_tournament, root};
+use crate::routes::{info, manage_tournament, reload_players, root};
+use crate::routes::{not_found, save_players};
 
 pub async fn run(addr: &SocketAddr) {
     let state = Arc::new(Mutex::new(State {
@@ -22,6 +22,8 @@ pub async fn run(addr: &SocketAddr) {
 
     let app = Router::new()
         .merge(manage_tournament())
+        .merge(save_players())
+        .merge(reload_players())
         .merge(info())
         .merge(root())
         .fallback(get(not_found))

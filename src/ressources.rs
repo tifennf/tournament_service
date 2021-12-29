@@ -148,7 +148,7 @@ impl Tournament {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 
 pub struct PlayerAmount(pub usize);
 
@@ -175,7 +175,7 @@ impl PoolAmount {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerList {
     list: HashSet<PlayerVerified>,
     pub max_amount: PlayerAmount,
