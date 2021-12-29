@@ -52,7 +52,7 @@ pub fn save_plist(list: &PlayerList) -> Result<(), String> {
     Ok(())
 }
 pub fn get_plist() -> Result<PlayerList, String> {
-    let file = fs::File::create("./players.json").map_err(|err| err.to_string())?;
+    let file = fs::File::open("./players.json").map_err(|err| err.to_string())?;
 
     let reader = BufReader::new(&file);
 
