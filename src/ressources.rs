@@ -46,8 +46,8 @@ impl DiscordName {
 pub struct Player {
     pub league_name: String,
     pub discord_username: String,
-    pub tag: String,
-    pub discord_id: String,
+    pub tag: u16,
+    pub discord_id: usize,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct PlayerVerified {
