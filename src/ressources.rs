@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use serde::{Deserialize, Serialize};
+use tracing::log::debug;
 
 use crate::{
     core::{PLAYER_AMOUNT, POOL_AMOUNT, POOL_SIZE},
@@ -195,9 +196,9 @@ impl PlayerList {
         let max_len = self.max_amount.0;
         let list_len = self.list.len();
 
-        self.list
-            .iter()
-            .find(|p| p.discord_id == player.discord_id && p.league_name == player.league_name);
+        let x = self.list.iter().find(|p| p.eq(&&player));
+
+        debug!("ALREADY EXIST ? {:?}", x);
 
         let condition = list_len < max_len && self.list.insert(player);
         if condition {
