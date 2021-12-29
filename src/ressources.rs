@@ -1,7 +1,6 @@
 use std::{collections::HashSet, hash::Hash};
 
 use serde::{Deserialize, Serialize};
-use tracing::log::debug;
 
 use crate::{
     core::{PLAYER_AMOUNT, POOL_AMOUNT, POOL_SIZE},
