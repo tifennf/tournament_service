@@ -53,7 +53,7 @@ fn register_player() -> Router {
 
         debug!("player: {:#?}", player);
         let player = PlayerVerified::try_from(player)
-            .map_err(|_| ApiResponse::new(StatusCode::BAD_REQUEST, Value::Null))?;
+            .map_err(|_| ApiResponse::new(StatusCode::IM_A_TEAPOT, Value::Null))?;
 
         let status = if player_list.insert(player) {
             StatusCode::OK
