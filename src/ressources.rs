@@ -194,7 +194,7 @@ impl PlayerList {
         let max_len = self.max_amount.0;
         let list_len = self.list.len();
 
-        let x = self.list.iter().find(|p| p.eq(&&player));
+        let x = self.list.contains(&player);
 
         debug!("ALREADY EXIST ? {:?}", x);
 
