@@ -59,14 +59,13 @@ pub struct PlayerVerified {
 
 impl Hash for PlayerVerified {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.league_name.hash(state);
         self.discord_id.hash(state);
     }
 }
 
 impl PartialEq for PlayerVerified {
     fn eq(&self, other: &Self) -> bool {
-        self.league_name == other.league_name || self.discord_id == other.discord_id
+        self.discord_id == other.discord_id
     }
 }
 
