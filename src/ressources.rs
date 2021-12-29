@@ -49,11 +49,19 @@ pub struct Player {
     pub tag: u16,
     pub discord_id: usize,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, Hash)]
 pub struct PlayerVerified {
     pub league_name: String,
     pub discord_name: DiscordName,
     pub discord_id: usize,
+}
+
+impl PartialEq for PlayerVerified {
+    fn eq(&self, other: &Self) -> bool {
+        self.league_name == other.league_name
+            && self.discord_name == other.discord_name
+            && self.discord_id == other.discord_id
+    }
 }
 
 impl TryFrom<Player> for PlayerVerified {
@@ -186,6 +194,10 @@ impl PlayerList {
     pub fn insert(&mut self, player: PlayerVerified) -> bool {
         let max_len = self.max_amount.0;
         let list_len = self.list.len();
+
+        self.list
+            .iter()
+            .find(|p| p.discord_id == player.discord_id && p.league_name == player.league_name);
 
         let condition = list_len < max_len && self.list.insert(player);
         if condition {
