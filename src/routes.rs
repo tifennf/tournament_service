@@ -153,7 +153,7 @@ fn open_inscriptions() -> Router {
 pub fn manage_tournament() -> Router {
     let tournament_routes = Router::new()
         .merge(register_player())
-        // .layer(OpenCheckLayer)
+        .layer(OpenCheckLayer)
         .merge(start_tournament())
         .merge(open_inscriptions())
         .merge(init_tournament())
