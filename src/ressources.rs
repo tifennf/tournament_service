@@ -45,34 +45,34 @@ impl DiscordName {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct Player {
     pub league_name: String,
-    pub discord_name: String,
+    pub discord_username: String,
+    pub tag: u16,
+    pub discord_id: usize,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct PlayerVerified {
     pub league_name: String,
     pub discord_name: DiscordName,
+    pub discord_id: usize,
 }
 
 impl TryFrom<Player> for PlayerVerified {
     type Error = Player;
 
     fn try_from(value: Player) -> Result<Self, Self::Error> {
-        let (name, tag) = {
-            let result = &value.discord_name.split('#').collect::<Vec<&str>>();
-            if result.len() != 2 {
-                return Err(value);
-            }
+        let Player {
+            discord_username: discord_name,
+            tag,
+            discord_id,
+            league_name,
+        } = value.clone();
 
-            let tag: u16 = result[1].parse().map_err(|_| value.clone())?;
-
-            (result[0], tag)
-        };
-
-        let discord_name = DiscordName::new(name.to_string(), tag).map_err(|_| value.clone())?;
+        let discord_name = DiscordName::new(discord_name, tag).map_err(|_| value)?;
 
         let player = Self {
-            league_name: value.league_name,
+            league_name,
             discord_name,
+            discord_id,
         };
 
         Ok(player)
