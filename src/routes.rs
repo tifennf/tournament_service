@@ -5,7 +5,6 @@ use axum::{
     Json, Router,
 };
 use serde_json::Value;
-use tracing::log::debug;
 
 use crate::{
     core::{ApiResponse, SharedState, State, POOL_SIZE},
