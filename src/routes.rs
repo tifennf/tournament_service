@@ -5,6 +5,7 @@ use axum::{
     Json, Router,
 };
 use serde_json::Value;
+use tracing::log::debug;
 
 use crate::{
     core::{ApiResponse, SharedState, State, POOL_SIZE},
@@ -50,6 +51,7 @@ fn register_player() -> Router {
             .as_mut()
             .ok_or_else(|| ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, Value::Null))?;
 
+        debug!("player: {:#?}", player);
         let player = PlayerVerified::try_from(player)
             .map_err(|_| ApiResponse::new(StatusCode::BAD_REQUEST, Value::Null))?;
 
@@ -58,6 +60,8 @@ fn register_player() -> Router {
         } else {
             StatusCode::FORBIDDEN
         };
+
+        debug!("status: {}", status);
 
         Ok(ApiResponse::new(status, Value::Null))
     }
