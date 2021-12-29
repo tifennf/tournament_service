@@ -59,7 +59,7 @@ pub struct PlayerVerified {
 
 impl PartialEq for PlayerVerified {
     fn eq(&self, other: &Self) -> bool {
-        self.league_name == other.league_name && self.discord_id == other.discord_id
+        self.league_name == other.league_name || self.discord_id == other.discord_id
     }
 }
 
