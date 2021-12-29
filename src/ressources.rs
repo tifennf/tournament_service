@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, hash::Hash};
 
 use serde::{Deserialize, Serialize};
 use tracing::log::debug;
@@ -50,11 +50,18 @@ pub struct Player {
     pub tag: u16,
     pub discord_id: usize,
 }
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq)]
 pub struct PlayerVerified {
     pub league_name: String,
     pub discord_name: DiscordName,
     pub discord_id: usize,
+}
+
+impl Hash for PlayerVerified {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.league_name.hash(state);
+        self.discord_id.hash(state);
+    }
 }
 
 impl PartialEq for PlayerVerified {
