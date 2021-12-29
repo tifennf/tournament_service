@@ -48,13 +48,13 @@ pub struct Player {
     pub league_name: String,
     pub discord_username: String,
     pub tag: u16,
-    pub discord_id: usize,
+    pub discord_id: String,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Eq)]
 pub struct PlayerVerified {
     pub league_name: String,
     pub discord_name: DiscordName,
-    pub discord_id: usize,
+    pub discord_id: String,
 }
 
 impl Hash for PlayerVerified {
