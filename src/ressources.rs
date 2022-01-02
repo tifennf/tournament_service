@@ -131,7 +131,7 @@ impl Tournament {
             .pool_list
             .clone()
             .into_iter()
-            .zip(player_list.chunks_exact(POOL_SIZE))
+            .zip(player_list.chunks(POOL_SIZE))
             .map(|(mut pool, player_list)| {
                 let list = &mut pool.player_list;
                 while list.len() < pool.amount.0 {
