@@ -93,7 +93,7 @@ impl TryFrom<Player> for PlayerVerified {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pool {
-    player_list: Vec<PlayerVerified>,
+    pub player_list: HashSet<PlayerVerified>,
     id: usize,
     amount: PoolAmount,
 }
@@ -103,7 +103,7 @@ impl Pool {
         let amount = PoolAmount(amount);
 
         Pool {
-            player_list: Vec::new(),
+            player_list: HashSet::new(),
             id,
             amount,
         }
@@ -136,13 +136,15 @@ impl Tournament {
                 let list = &mut pool.player_list;
                 while list.len() < pool.amount.0 {
                     for player in player_list {
-                        list.push(player.clone())
+                        list.insert(player.clone());
                     }
                 }
 
                 pool
             })
             .collect::<Vec<Pool>>();
+
+        // let pool_list = pool_list.iter().for_each(|pool| pool.player_list.iter().filter(|predicate|))
 
         self.pool_list = pool_list;
     }
