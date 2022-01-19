@@ -135,11 +135,15 @@ impl Tournament {
             .zip(player_list.chunks(POOL_SIZE))
             .map(|(mut pool, player_list)| {
                 let list = &mut pool.player_list;
-                while list.len() < pool.amount.0 {
+
+                let mut i = 0;
+
+                while i < pool.amount.0 {
                     for player in player_list {
                         let res = list.insert(player.clone());
 
                         debug!("{}", res);
+                        i += 1;
                     }
                 }
 
