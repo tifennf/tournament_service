@@ -1,6 +1,7 @@
 use std::{collections::HashSet, hash::Hash};
 
 use serde::{Deserialize, Serialize};
+use tracing::log::debug;
 
 use crate::{
     core::{PLAYER_AMOUNT, POOL_AMOUNT, POOL_SIZE},
@@ -136,7 +137,9 @@ impl Tournament {
                 let list = &mut pool.player_list;
                 while list.len() < pool.amount.0 {
                     for player in player_list {
-                        list.insert(player.clone());
+                        let res = list.insert(player.clone());
+
+                        debug!("{}", res);
                     }
                 }
 
