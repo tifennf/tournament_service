@@ -177,7 +177,7 @@ impl PoolAmount {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerList {
-    list: HashSet<PlayerVerified>,
+    pub list: HashSet<PlayerVerified>,
     pub max_amount: PlayerAmount,
     pub current_amount: usize,
 }
@@ -214,10 +214,6 @@ impl PlayerList {
         }
 
         condition
-    }
-
-    pub fn list(&self) -> &HashSet<PlayerVerified> {
-        &self.list
     }
 }
 
