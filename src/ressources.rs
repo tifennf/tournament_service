@@ -151,8 +151,6 @@ impl Tournament {
             })
             .collect::<Vec<Pool>>();
 
-        // let pool_list = pool_list.iter().for_each(|pool| pool.player_list.iter().filter(|predicate|))
-
         self.pool_list = pool_list;
     }
 }

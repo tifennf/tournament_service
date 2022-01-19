@@ -12,7 +12,7 @@ use crate::{
     ressources::{
         InitTournament, InscriptionsState, Player, PlayerList, PlayerVerified, Tournament,
     },
-    utils::{self, fake_player},
+    utils,
 };
 
 pub fn reload_players() -> Router {
@@ -148,15 +148,9 @@ fn start_tournament() -> Router {
         let player_list = state.player_list.as_mut();
 
         if let Some(player_list) = player_list {
-            // if !(player_list.current_amount % 2 == 0) {
-            //     player_list.insert(fake_player()?);
-            // }
-
             let mut tournament = Tournament::new(player_list.max_amount.0 / POOL_SIZE);
 
             tournament.fill(&player_list.list);
-
-            // player_list.list.iter().filter(|player| player)
 
             state.tournament = Some(tournament);
 
