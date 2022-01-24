@@ -59,15 +59,15 @@ pub fn get_plist() -> Result<PlayerList, String> {
     serde_json::from_reader(reader).map_err(|err| err.to_string())
 }
 
-pub fn fake_player() -> Result<PlayerVerified, ApiResponse<Value>> {
-    let discord_name = DiscordName::new("FAUX JOUEUR".to_string(), 0)
-        .map_err(|_| ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, Value::Null))?;
+// pub fn fake_player() -> Result<PlayerVerified, ApiResponse<Value>> {
+//     let discord_name = DiscordName::new("FAUX JOUEUR".to_string(), 0)
+//         .map_err(|_| ApiResponse::new(StatusCode::INTERNAL_SERVER_ERROR, Value::Null))?;
 
-    let p = PlayerVerified {
-        league_name: "FAUX JOUEUR POUR FIX LE BOT".to_string(),
-        discord_name,
-        discord_id: "2n+1".to_string(),
-    };
+//     let p = PlayerVerified {
+//         league_name: "FAUX JOUEUR POUR FIX LE BOT".to_string(),
+//         discord_name,
+//         discord_id: "2n+1".to_string(),
+//     };
 
-    Ok(p)
-}
+//     Ok(p)
+// }

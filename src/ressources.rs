@@ -49,12 +49,16 @@ pub struct Player {
     pub discord_username: String,
     pub tag: u16,
     pub discord_id: String,
+    pub riot_account_id: String,
+    pub puuid: String,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, Eq)]
 pub struct PlayerVerified {
     pub league_name: String,
     pub discord_name: DiscordName,
     pub discord_id: String,
+    pub riot_account_id: String,
+    pub puuid: String,
 }
 
 impl Hash for PlayerVerified {
@@ -78,6 +82,8 @@ impl TryFrom<Player> for PlayerVerified {
             tag,
             discord_id,
             league_name,
+            puuid,
+            riot_account_id,
         } = value.clone();
 
         let discord_name = DiscordName::new(discord_name, tag).map_err(|_| value)?;
@@ -86,6 +92,8 @@ impl TryFrom<Player> for PlayerVerified {
             league_name,
             discord_name,
             discord_id,
+            puuid,
+            riot_account_id,
         };
 
         Ok(player)
