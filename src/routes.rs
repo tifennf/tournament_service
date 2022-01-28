@@ -226,9 +226,9 @@ fn open_inscriptions() -> Router {
 
 pub fn manage_tournament() -> Router {
     let tournament_routes = Router::new()
-        .merge(remove_player())
         .merge(register_player())
         .layer(OpenCheckLayer)
+        .merge(remove_player())
         .merge(start_tournament())
         .merge(open_inscriptions())
         .merge(init_tournament())
